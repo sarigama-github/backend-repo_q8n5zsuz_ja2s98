@@ -11,8 +11,9 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, HttpUrl
+from typing import Optional, List
+from datetime import datetime
 
 # Example schemas (replace with your own):
 
@@ -37,6 +38,36 @@ class Product(BaseModel):
     price: float = Field(..., ge=0, description="Price in dollars")
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
+
+# SaaS: GitHub repository ingestor schemas
+
+class Repo(BaseModel):
+    """
+    Stores metadata about a synced GitHub repository
+    Collection name: "repo"
+    """
+    owner: str = Field(..., description="GitHub owner/org")
+    name: str = Field(..., description="Repository name")
+    full_name: str = Field(..., description="owner/name")
+    url: str = Field(..., description="Original URL used to sync")
+    default_branch: Optional[str] = Field(None, description="Default branch")
+    description: Optional[str] = Field(None)
+    last_synced_at: Optional[datetime] = Field(None)
+    file_count: Optional[int] = Field(0)
+
+class FileDocument(BaseModel):
+    """
+    Stores each file/blob from a synced repository
+    Collection name: "filedocument"
+    """
+    repo_full_name: str = Field(..., description="owner/name")
+    path: str = Field(..., description="File path within the repo")
+    sha: Optional[str] = Field(None, description="Git SHA of the blob")
+    size: Optional[int] = Field(None)
+    type: str = Field(..., description="blob or tree")
+    content: Optional[str] = Field(None, description="UTF-8 text content if available, otherwise base64")
+    encoding: Optional[str] = Field(None, description="Content encoding (utf-8 or base64)")
+    language: Optional[str] = Field(None, description="Detected simple language by extension")
 
 # Add your own schemas here:
 # --------------------------------------------------
